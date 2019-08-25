@@ -30,6 +30,7 @@ mutation_chance = 0.9
 crossover_chance = 0.1
 sigma = 1 / 6
 num_generations = 100
+thresshold = 0.00001
 
 dataset = 8
 now = datetime.datetime.now()
@@ -98,6 +99,15 @@ for file in os.listdir("stocks"):
 
             end = time.time()
             print(datetime.timedelta(seconds=end - start))
+
+            # Convergence
+            fitness = genetic_algorithm.pop_fitness(stock_values, fit_population, index, T, lamda, alpha, epsilon,
+                                                    delta,
+                                                    gamma)
+            if numpy.average(fitness) - numpy.min(fitness) < thresshold:
+                print("Convergence achieved")
+                break
+
         # Getting the best solution after iterating finishing all generations.
         # At first, the fitness is calculated for each solution in the final generation.
         fitness = genetic_algorithm.pop_fitness(stock_values, fit_population, index, T, lamda, alpha, epsilon, delta,
