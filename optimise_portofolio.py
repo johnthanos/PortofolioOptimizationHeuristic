@@ -16,27 +16,29 @@ Genetic algorithm parameters:
     Mating pool size
     Population size
 """
-sol_per_pop = 200
-num_parents_mating = 80
+sol_per_pop = 100
+num_parents_mating = 40
 lamda = 1
 alpha = 2
 T = 290
 starting_time = 0
 Kappa = 10
 cash = 1000000
-gamma = 0.0025
+gamma = 0.00
 
 mutation_chance = 0.9
-crossover_chance = 0.1
+# crossover_chance = 0.2
 sigma = 1 / 6
 num_generations = 100
-thresshold = 0.00001
+threshold = 0.00001
 
 dataset = 8
 now = datetime.datetime.now()
-
-for file in os.listdir("stocks"):
-    with open("stocks/" + file) as csv_file:
+message = ""
+# file_list = os.listdir("stocks")
+file_list = ["indtrack1.csv"]
+for file in file_list:
+    with open("stocks/{}".format(file)) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter='\t')
         stock_values = list(csv_reader)
         stock_values = [list(map(float, i[:-1])) for i in stock_values]
@@ -49,10 +51,12 @@ for file in os.listdir("stocks"):
     pop_size = (sol_per_pop, num_weights)
     epsilon = [0.001]*num_weights
     delta = [1]*num_weights
-    current_portofolio = [0]*num_weights
-    for i in range(1, Kappa + 1):
-        current_portofolio[i] = 1/Kappa
+
     for i in range(5):
+        # define starting portfolio, as equal quantities of kappa stocks
+        current_portofolio = [0] * num_weights
+        for i in range(1, Kappa + 1):
+            current_portofolio[i] = 1 / Kappa
         fitness_list = list()
         index = genetic_algorithm.index_value(stock_values, Kappa)
         # Creating the initial population.
@@ -85,7 +89,8 @@ for file in os.listdir("stocks"):
             offspring_mutation_unfit = genetic_algorithm.reverse_mutation(offspring_crossover_unfit, sigma,
                                                                           mutation_chance)
 
-            sigma = max(0, sigma * float(numpy.exp(genetic_algorithm.gaussian_mutation(0, 1))))
+            if generation % 10 == 0 and generation > 0:
+                sigma = max(sigma/2, sigma * float((genetic_algorithm.gaussian_mutation_calmped(0, 1))))
 
             # Creating the new population based on the parents and offspring.
             fit_population = genetic_algorithm.new_populations_fit(fit_population, offspring_mutation_fit, stock_values,
@@ -104,8 +109,12 @@ for file in os.listdir("stocks"):
             fitness = genetic_algorithm.pop_fitness(stock_values, fit_population, index, T, lamda, alpha, epsilon,
                                                     delta,
                                                     gamma)
-            if numpy.average(fitness) - numpy.min(fitness) < thresshold:
+            print(numpy.min(fitness))
+            print(numpy.average(fitness))
+            message = "No convergance {}".format(generation)
+            if numpy.average(fitness) - numpy.min(fitness) < threshold:
                 print("Convergence achieved")
+                message = "Convergence achieved {}".format(generation)
                 break
 
         # Getting the best solution after iterating finishing all generations.
@@ -123,8 +132,9 @@ for file in os.listdir("stocks"):
         print("Best solution unfitness : ", unfitness[best_match_idx[0][0]])
 
         with open("results/{}_{}_{}_{}.txt".format(now.month, now.day, now.hour, file.split(".")[0]), "a") as outfile:
-            outfile.write("Repetition {}".format(i))
-            outfile.write("Best solution : {}".format(fit_population[best_match_idx[0][0]]))
-            outfile.write("Best solution fitness :  {}".format(fitness[best_match_idx[0][0]]))
+            outfile.write("Repetition {}\n".format(i))
+            outfile.write(message)
+            outfile.write("\nBest solution : {}\n".format(fit_population[best_match_idx[0][0]]))
+            outfile.write("Best solution fitness :  {}\n".format(fitness[best_match_idx[0][0]]))
 
-            outfile.write("Best solution unfitness :  {}".format(unfitness[best_match_idx[0][0]]))
+            outfile.write("Best solution unfitness :  {}\n".format(unfitness[best_match_idx[0][0]]))

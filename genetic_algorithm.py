@@ -197,7 +197,7 @@ def mutation(offspring_crossover, stddev, chance, kappa):
     for idx1, chromosome in enumerate(offspring_crossover):
         for idx2, gene in enumerate(chromosome):
             if numpy.random.random_sample() < chance:
-                offspring_crossover[idx1][idx2] = gaussian_mutation(offspring_crossover[idx1][idx2], stddev)
+                offspring_crossover[idx1][idx2] = gaussian_mutation_calmped(offspring_crossover[idx1][idx2], stddev)
         offspring_crossover[idx1] = check_selected_stocks(offspring_crossover[idx1], kappa)
 
     return offspring_crossover
@@ -208,7 +208,7 @@ def reverse_mutation(offspring_crossover, stddev, chance):
     for idx1, chromosome in enumerate(offspring_crossover):
         for idx2, gene in enumerate(chromosome):
             if numpy.random.random_sample() < chance:
-                offspring_crossover[idx1][idx2] = gaussian_mutation(offspring_crossover[idx1][idx2], stddev)
+                offspring_crossover[idx1][idx2] = gaussian_mutation_calmped(offspring_crossover[idx1][idx2], stddev)
 
     return offspring_crossover
 
@@ -219,6 +219,11 @@ def gaussian_mutation(mean, stddev):
     x2 = numpy.random.random_sample()
     random_value = numpy.sqrt(-2.0 * numpy.log(x1)) * numpy.cos(2.0 * numpy.pi * x2)
     new_value = mean + random_value * stddev
+    return new_value
+
+
+def gaussian_mutation_calmped(mean, stddev):
+    new_value = gaussian_mutation(mean, stddev)
     if new_value > 1:
         return 1
     elif new_value < 0:
@@ -291,17 +296,22 @@ def new_populations_fit(population, offspring_pop, stock_values, index, T, curre
                                     gamma)
     offspring_unfitness = pop_unfitness(stock_values, offspring_pop, T, current_portofolio, starting_time,
                                         epsilon, delta, gamma)
-
+    # remove best individual so it not removed
+    best_ind_idx = numpy.where(fitness == numpy.min(fitness))
+    best_individual = population.pop(best_ind_idx[0][0],)
+    fitness.pop(best_ind_idx[0][0])
+    unfitness.pop(best_ind_idx[0][0])
     for i, offspring in enumerate(offspring_pop):
+
         flag = True
         for j, individual in enumerate(population):
-
             if fitness[j] > offspring_fitness[i] and unfitness[j] > offspring_unfitness[i]:
                 population.pop(j)
                 fitness.pop(j)
                 unfitness.pop(j)
                 flag = False
                 break
+
         if flag:
             flag = True
             for j, individual in enumerate(population):
@@ -311,6 +321,7 @@ def new_populations_fit(population, offspring_pop, stock_values, index, T, curre
                     unfitness.pop(j)
                     flag = False
                     break
+
         if flag:
             flag = True
             for j, individual in enumerate(population):
@@ -320,6 +331,7 @@ def new_populations_fit(population, offspring_pop, stock_values, index, T, curre
                     unfitness.pop(j)
                     flag = False
                     break
+
         if flag:
             best_match_idx = numpy.where(unfitness == numpy.max(unfitness))
             population.pop(best_match_idx[0][0])
@@ -327,7 +339,8 @@ def new_populations_fit(population, offspring_pop, stock_values, index, T, curre
             unfitness.pop(best_match_idx[0][0])
 
     population += offspring_pop
-
+    # put back best individual
+    population.append(best_individual)
     return population
 
 
