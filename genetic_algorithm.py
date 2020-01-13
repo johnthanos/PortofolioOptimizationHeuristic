@@ -2,11 +2,11 @@
 import numpy
 
 
-def cal_pop_fitness(equation_inputs, individual, index, tau, lamda, alpha):
+def cal_pop_fitness(equation_inputs, individual, index, tau, lamda, alpha, starting_time=0):
     # Calculating the fitness value of each solution in the current population.
     # The fitness function calculates the sum of products between each input and its corresponding weight.
     e = [0] * tau
-    for t in range(1, tau):
+    for t in range(starting_time+1, tau):
         sum1 = [0] * len(individual)
         sum2 = [0] * len(individual)
         for i, ind in enumerate(individual):
@@ -31,17 +31,17 @@ def cal_pop_unfitness(equation_inputs, individual, tau, curent_portofolio, start
     cost_sum = 0
     for i, y in enumerate(individual):
         if i > 0:
-            cost_sum += 0.01*abs(curent_portofolio[i-1]/equation_inputs[i-1][starting_time] - y/equation_inputs[i-1][tau])
+            cost_sum += 0.0000001*abs(curent_portofolio[i-1]/equation_inputs[i-1][starting_time] - y/equation_inputs[i-1][tau])
     unfitness = abs(individual[0] - cost_sum)
 
     return unfitness
 
 
-def pop_fitness(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma):
+def pop_fitness(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma, starting_time=0):
     fitness = []
     for individual in pop:
         variables = transform_chromosome_to_variables(individual, epsilon, delta, gamma)
-        fitness.append(cal_pop_fitness(equation_inputs, variables, index, tau, lamda, alpha))
+        fitness.append(cal_pop_fitness(equation_inputs, variables, index, tau, lamda, alpha, starting_time))
 
     return fitness
 
@@ -55,8 +55,8 @@ def pop_unfitness(equation_inputs, pop, tau, curent_portofolio, starting_time, e
     return unfitness
 
 
-def fitness_sum(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma):
-    fitness = sum(pop_fitness(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma))
+def fitness_sum(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma, starting_time=0):
+    fitness = sum(pop_fitness(equation_inputs, pop, index, tau, lamda, alpha, epsilon, delta, gamma, starting_time))
 
     return fitness
 
@@ -68,12 +68,13 @@ def unfitness_sum(equation_inputs, pop, tau, curent_portofolio, starting_time, e
     return unfitness
 
 
-def select_mating_pool(equation_inputs, pop, index, num_parents, tau, lamda, alpha, epsilon, delta, gamma):
+def select_mating_pool(equation_inputs, pop, index, num_parents, tau, lamda, alpha, epsilon, delta, gamma,
+                       starting_time=0):
     # Selecting the best individuals in the current generation as parents for producing the offspring of the next
     # generation. Rhoulette wheel
     # f_eval = fitness_sum(equation_inputs, pop, tau, lamda, alpha, epsilon, delta, gamma)
     population = list(pop)
-    fitness = pop_fitness(equation_inputs, population, index, tau, lamda, alpha, epsilon, delta, gamma)
+    fitness = pop_fitness(equation_inputs, population, index, tau, lamda, alpha, epsilon, delta, gamma, starting_time)
     f_eval = sum(fitness)
     graded = numpy.true_divide(fitness, f_eval*1.0)
     graded = [[graded[i], population[i]] for i in range(len(graded))]
@@ -252,6 +253,7 @@ def transform_chromosome_to_variables(chrom, epsilon, delta, gamma):
     sum_s = 0
     sum_delta = 0
     q = []
+    r = []
     delta_flag = False
     for i, s in enumerate(chrom):
         if s > 0:
@@ -268,10 +270,19 @@ def transform_chromosome_to_variables(chrom, epsilon, delta, gamma):
         for i, s in enumerate(chrom):
             if y[i] > delta[i]:
                 y[i] = delta[i]
-            elif s > 0 or i == 0:
-                y[i] = epsilon[i] + s * (1 - (sum_epsilon + sum_delta)) / sum_s
-
+                q.pop(i)
+                r.append(i)
+        for j in q:
+            y[j] = epsilon[j] + chrom[j] * (1 - (segmented_sum(epsilon, q) + segmented_sum(delta, r))) / segmented_sum(chrom, q)
     return y
+
+
+def segmented_sum(values, indexes):
+
+    value_sum = 0
+    for index in indexes:
+        value_sum += values[index]
+    return value_sum
 
 
 def index_value(stock_values, kappa):

@@ -49,7 +49,7 @@ for file in file_list:
     # Defining the population size.
     # The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
     pop_size = (sol_per_pop, num_weights)
-    epsilon = [0.001]*num_weights
+    epsilon = [0.01]*num_weights
     delta = [1]*num_weights
 
     for i in range(5):
@@ -82,15 +82,15 @@ for file in file_list:
             # Generating next generation using crossover.
             offspring_crossover_fit, offspring_crossover_unfit = genetic_algorithm.crossover(
                 parents1, parents2, index, stock_values, T, lamda, alpha, epsilon, delta, gamma, current_portofolio,
-                starting_time,  Kappa)
+                starting_time, Kappa)
 
             # Adding some variations to the offspring using mutation.
             offspring_mutation_fit = genetic_algorithm.mutation(offspring_crossover_fit, sigma, mutation_chance, Kappa)
             offspring_mutation_unfit = genetic_algorithm.reverse_mutation(offspring_crossover_unfit, sigma,
                                                                           mutation_chance)
 
-            if generation % 10 == 0 and generation > 0:
-                sigma = max(sigma/2, sigma * float((genetic_algorithm.gaussian_mutation_calmped(0, 1))))
+            if generation % 5 == 0 and generation > 0:
+                sigma = max(0, sigma * float((numpy.exp(genetic_algorithm.gaussian_mutation(0, 1)))))
 
             # Creating the new population based on the parents and offspring.
             fit_population = genetic_algorithm.new_populations_fit(fit_population, offspring_mutation_fit, stock_values,
