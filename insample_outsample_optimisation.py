@@ -111,7 +111,7 @@ for file in file_list:
                                                         gamma)
                 print(numpy.min(fitness))
                 print(numpy.average(fitness))
-                message = "No convergance {}".format(generation)
+                message = "No convergence {}".format(generation)
                 if numpy.average(fitness) - numpy.min(fitness) < threshold:
                     print("Convergence achieved")
                     message = "Convergence achieved {}".format(generation)
