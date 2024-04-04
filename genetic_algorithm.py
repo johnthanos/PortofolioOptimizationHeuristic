@@ -17,6 +17,8 @@ def cal_pop_fitness(equation_inputs, individual, index, tau, lamda, alpha, start
         new_return = numpy.log(numpy.sum(sum1)/numpy.sum(sum2))
         index_return = numpy.log(index[t]/index[t-1])
         e[t] = new_return - index_return
+        if e[t] > 0:
+            e[t] = 0
     gain = numpy.sum(e)/tau
     error = numpy.power(numpy.sum(numpy.power(numpy.abs(e), alpha)), 1/alpha)/tau
 

@@ -17,7 +17,7 @@ Genetic algorithm parameters:
     Population size
 """
 sol_per_pop = 100
-num_parents_mating = 40
+num_parents_mating = 20
 lamda = 1
 alpha = 2
 T = 290
@@ -29,14 +29,16 @@ gamma = 0.00
 mutation_chance = 0.9
 # crossover_chance = 0.2
 sigma = 1 / 6
-num_generations = 100
+num_generations = 150
 threshold = 0.00001
 
 dataset = 8
 now = datetime.datetime.now()
 message = ""
 # file_list = os.listdir("stocks")
-file_list = ["indtrack1.csv"]
+# file_list = ["indtrack1.csv", "indtrack2.csv", "indtrack3.csv", "indtrack4.csv"]
+file_list = ["indtrack5.csv"]
+
 for file in file_list:
     with open("stocks/{}".format(file)) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter='\t')
@@ -55,8 +57,8 @@ for file in file_list:
     for i in range(5):
         # define starting portfolio, as equal quantities of kappa stocks
         current_portofolio = [0] * num_weights
-        for i in range(1, Kappa + 1):
-            current_portofolio[i] = 1 / Kappa
+        for j in range(1, Kappa + 1):
+            current_portofolio[j] = 1 / Kappa
         fitness_list = list()
         index = genetic_algorithm.index_value(stock_values, Kappa)
         # Creating the initial population.
@@ -132,7 +134,7 @@ for file in file_list:
         print("Best solution unfitness : ", unfitness[best_match_idx[0][0]])
 
         with open("results/{}_{}_{}_{}.txt".format(now.month, now.day, now.hour, file.split(".")[0]), "a") as outfile:
-            outfile.write("Repetition {}\n".format(i))
+            outfile.write("Repetition {}\n".format(i+1))
             outfile.write(message)
             outfile.write("\nBest solution : {}\n".format(fit_population[best_match_idx[0][0]]))
             outfile.write("Best solution fitness :  {}\n".format(fitness[best_match_idx[0][0]]))
