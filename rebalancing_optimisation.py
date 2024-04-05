@@ -152,4 +152,4 @@ for file in file_list:
                 outfile.write("Repetition {}\n".format(i+1))
                 outfile.write(message)
                 outfile.write("\nBest solution : {}\n".format(current_portofolio_list[-1]))
-                outfile.write("Total rebalancing tracking error :  {}\n".format(total_error))
+                outfile.write("Total rebalancing tracking error :  {}\n".format(sum(total_error)))
